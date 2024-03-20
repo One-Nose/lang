@@ -1,0 +1,63 @@
+# field number ...
+# field integer ...
+
+# cast integer -> number: ...
+
+# def number + number -> number: ...
+# def integer + integer -> integer: ...
+# def number * number -> number: ...
+# def integer * integer -> integer: ...
+# def number / number -> number: ...
+# def number ** number -> { real, imag }: ...
+
+field real { number }
+field imag { number }
+
+cast n number -> real:
+    return { number = n }
+
+cast number -> imag:
+    return 0
+
+def n { number } j -> { real, imag }:
+    return { real = 0, imag = n }
+
+def x { number } + y { number } -> { number }:
+    return { number = x.number + y.number }
+
+def x { integer } + y { integer } -> { integer }:
+    return { integer = x.integer + y.integer }
+
+def x { real, imag } + y { real, imag } -> { real, imag }:
+    return { real = x.real + y.real, imag = x.imag + y.imag }
+
+def x { number } * y { number } -> { number }:
+    return { number = x.number * y.number }
+
+def x { integer } * y { integer } -> { integer }:
+    return { integer = x.integer * y.integer }
+
+def x { real, imag } * y { real, imag } -> { real, imag }:
+    return {
+        real = x.real * y.real - x.imag * y.imag,
+        imag = x.real * y.imag + x.imag * y.real
+    }
+
+def x { number } / y { number } -> { number }:
+    return { number = x.number / y.number }
+
+def x { real, imag } / y { real, imag } -> { real, imag }:
+    var denom = y.real ** 2 + y.imag ** 2
+    return {
+        real = (x.real * y.real + x.imag * y.imag) / denom,
+        imag = (x.imag * y.real - x.real * y.imag) / denom
+    }
+
+def x { number } ** y { number } -> { real, imag }:
+    return x.number ** y.number
+
+alias x - y:
+    return x + -y
+
+alias -x:
+    return -1 * x

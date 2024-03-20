@@ -1,0 +1,63 @@
+start: (global_statement | _COMMENT _NL)*
+
+?global_statement: field | cast | def | alias
+
+field: _FIELD typed_name _NL
+cast: _CAST NAME? NAME _ARROW NAME ":" block
+def: _DEF signature{typed_name} _ARROW type ":" block
+alias: _ALIAS signature{NAME} ":" block
+
+_FIELD: "field" _WS
+_CAST: "cast" _WS
+_DEF: "def" _WS
+_ALIAS: "alias" _WS
+
+_ARROW.1: "->"
+
+type: "{" NAME ("," NAME)* "}"
+typed_name: NAME type
+
+block: _NL _INDENT ((statement | _COMMENT) _NL)+ _DEDENT
+
+?statement: return | var
+
+return: "return" expression
+var: "var" NAME "=" expression
+
+?expression: sum_or_sub
+?sum_or_sub: mul_or_div (SUM_OR_SUB mul_or_div)?
+?mul_or_div: negation (MUL_OR_DIV negation)?
+?negation: "-" power -> negation
+         | power
+?power: access ("**" access)?
+?access: value ("." value)?
+?value: NAME | NUMBER | object | "(" expression ")"
+
+SUM_OR_SUB: "+" | "-"
+MUL_OR_DIV: "*" | "/"
+
+?object: "{" object_fields "}"
+       | "{" _NL _INDENT object_fields _NL _DEDENT "}"
+object_fields: object_field ("," object_field)* -> object
+object_field: _NL? NAME "=" expression
+
+signature{arg}: "-" arg -> negation_overload
+              | arg signature_rest{arg}
+
+signature_rest{arg}: NAME -> suffix_signature
+                   | OVERLOAD_OPERATOR arg -> operator_overload
+
+OVERLOAD_OPERATOR: "+" | "-" | "**" | "*" | "/"
+
+_NL: NEWLINE _WS*
+
+%ignore _WS
+
+%import common.WS_INLINE -> _WS
+%import common.NEWLINE
+%import common.CNAME -> NAME
+%import common.NUMBER
+%import common.SH_COMMENT -> _COMMENT
+
+%declare _INDENT
+%declare _DEDENT
